@@ -25,6 +25,7 @@ async function probeImap(hosts, user, pass) {
         logger: false,
         connectionTimeout: PORT_DETECT_TIMEOUT,
         greetingTimeout: PORT_DETECT_TIMEOUT,
+        tls: { rejectUnauthorized: false },
       })
       try {
         await client.connect()
