@@ -49,10 +49,10 @@ async function probeSmtp(host, user, pass) {
   throw new Error('No working SMTP port found')
 }
 
-async function detectPorts(host, user, pass) {
+async function detectPorts(imapHost, smtpHost, user, pass) {
   const [imap, smtp] = await Promise.all([
-    probeImap(host, user, pass),
-    probeSmtp(host, user, pass),
+    probeImap(imapHost, user, pass),
+    probeSmtp(smtpHost, user, pass),
   ])
   return { imap, smtp }
 }
