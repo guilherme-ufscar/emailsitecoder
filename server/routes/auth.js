@@ -4,16 +4,19 @@ const jwt = require('jsonwebtoken')
 const { getDb } = require('../config/db')
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/constants')
 const { detectPorts } = require('../services/portDetector')
+const { deriveHost } = require('../services/hostDetector')
 const authMiddleware = require('../middleware/auth')
 
 const router = express.Router()
 
 router.post('/login', async (req, res, next) => {
   try {
-    const { email, password, host } = req.body
-    if (!email || !password || !host) {
-      return res.status(400).json({ error: 'email, password and host are required' })
+    const { email, password, host: providedHost } = req.body
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email and password are required' })
     }
+
+    const host = providedHost || deriveHost(email)
 
     const db = getDb()
     let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
