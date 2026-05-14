@@ -1,9 +1,11 @@
+const dns = require('dns').promises
+
 const KNOWN_PROVIDERS = {
   // Google
   'gmail.com':      ['imap.gmail.com',       'smtp.gmail.com'],
   'googlemail.com': ['imap.gmail.com',       'smtp.gmail.com'],
 
-  // Microsoft (same host for both)
+  // Microsoft
   'outlook.com':    ['outlook.office365.com', 'smtp.office365.com'],
   'outlook.com.br': ['outlook.office365.com', 'smtp.office365.com'],
   'outlook.pt':     ['outlook.office365.com', 'smtp.office365.com'],
@@ -68,7 +70,26 @@ const KNOWN_PROVIDERS = {
   'tiscali.it':     ['imap.tiscali.it',       'smtp.tiscali.it'],
 }
 
-function deriveHost(email) {
+// For unknown domains: MX first, then common hostname patterns
+async function imapCandidates(domain) {
+  return [...(await resolveMx(domain)), `mail.${domain}`, `imap.${domain}`, domain]
+}
+
+async function smtpCandidates(domain) {
+  return [...(await resolveMx(domain)), `mail.${domain}`, `smtp.${domain}`, domain]
+}
+
+async function resolveMx(domain) {
+  try {
+    const addresses = await dns.resolveMx(domain)
+    addresses.sort((a, b) => a.priority - b.priority)
+    return addresses.map(a => a.exchange.replace(/\.$/, ''))
+  } catch {
+    return []
+  }
+}
+
+async function deriveHost(email) {
   const normalized = email.trim().toLowerCase()
   const atIdx = normalized.lastIndexOf('@')
   if (atIdx === -1) throw new Error('Invalid email address')
@@ -76,10 +97,14 @@ function deriveHost(email) {
 
   if (KNOWN_PROVIDERS[domain]) {
     const [imap, smtp] = KNOWN_PROVIDERS[domain]
-    return { imapHost: imap, smtpHost: smtp }
+    return { imapHosts: [imap], smtpHosts: [smtp] }
   }
 
-  return { imapHost: `imap.${domain}`, smtpHost: `smtp.${domain}` }
+  const [imapHosts, smtpHosts] = await Promise.all([
+    imapCandidates(domain),
+    smtpCandidates(domain),
+  ])
+  return { imapHosts, smtpHosts }
 }
 
 module.exports = { deriveHost, KNOWN_PROVIDERS }

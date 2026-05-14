@@ -16,9 +16,9 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ error: 'email and password are required' })
     }
 
-    const { imapHost, smtpHost } = providedHost
-      ? { imapHost: providedHost, smtpHost: providedHost }
-      : deriveHost(email)
+    const { imapHosts, smtpHosts } = providedHost
+      ? { imapHosts: [providedHost], smtpHosts: [providedHost] }
+      : await deriveHost(email)
 
     const db = getDb()
     let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
@@ -26,11 +26,11 @@ router.post('/login', async (req, res, next) => {
     if (!user) {
       // First login — create user, detect ports
       const hash = await bcrypt.hash(password, 10)
-      const { imap, smtp } = await detectPorts(imapHost, smtpHost, email, password)
+      const { imap, smtp } = await detectPorts(imapHosts, smtpHosts, email, password)
       const info = db.prepare(`
         INSERT INTO users (email, password_hash, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(email, hash, imapHost, imap.port, imap.secure, smtpHost, smtp.port, smtp.secure)
+      `).run(email, hash, imap.host, imap.port, imap.secure, smtp.host, smtp.port, smtp.secure)
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid)
     } else {
       const valid = await bcrypt.compare(password, user.password_hash)
@@ -38,10 +38,10 @@ router.post('/login', async (req, res, next) => {
 
       // Re-detect ports if not cached
       if (!user.imap_port) {
-        const { imap, smtp } = await detectPorts(imapHost, smtpHost, email, password)
+        const { imap, smtp } = await detectPorts(imapHosts, smtpHosts, email, password)
         db.prepare(`
           UPDATE users SET imap_host=?, imap_port=?, imap_secure=?, smtp_host=?, smtp_port=?, smtp_secure=? WHERE id=?
-        `).run(imapHost, imap.port, imap.secure, smtpHost, smtp.port, smtp.secure, user.id)
+        `).run(imap.host, imap.port, imap.secure, smtp.host, smtp.port, smtp.secure, user.id)
         user = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)
       }
     }
