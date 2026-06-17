@@ -15,6 +15,7 @@ async function resolveMx(domain) {
 }
 
 async function probeImap(hosts, user, pass) {
+  const attempts = []
   for (const host of hosts) {
     for (const candidate of IMAP_CANDIDATES) {
       const client = new ImapFlow({
@@ -32,15 +33,20 @@ async function probeImap(hosts, user, pass) {
         await client.logout()
         console.log(`IMAP ${host}:${candidate.port}/${candidate.tls ? 'ssl' : 'plain'} OK`)
         return { host, port: candidate.port, secure: candidate.tls ? 1 : 0 }
-      } catch {
-        // try next
+      } catch (err) {
+        const reason = err.message || String(err)
+        console.warn(`IMAP ${host}:${candidate.port} FAIL — ${reason}`)
+        attempts.push(`${host}:${candidate.port} → ${reason}`)
       }
     }
   }
-  throw new Error('No working IMAP port found')
+  const err = new Error(`IMAP: nenhuma porta funcionou.\n${attempts.join('\n')}`)
+  err.status = 400
+  throw err
 }
 
 async function probeSmtp(hosts, user, pass) {
+  const attempts = []
   for (const host of hosts) {
     for (const candidate of SMTP_CANDIDATES) {
       const transport = nodemailer.createTransport({
@@ -56,14 +62,18 @@ async function probeSmtp(hosts, user, pass) {
         await transport.verify()
         console.log(`SMTP ${host}:${candidate.port}/${candidate.secure ? 'ssl' : 'plain'} OK`)
         return { host, port: candidate.port, secure: candidate.secure ? 1 : 0 }
-      } catch {
-        // try next
+      } catch (err) {
+        const reason = err.message || String(err)
+        console.warn(`SMTP ${host}:${candidate.port} FAIL — ${reason}`)
+        attempts.push(`${host}:${candidate.port} → ${reason}`)
       } finally {
         transport.close()
       }
     }
   }
-  throw new Error('No working SMTP port found')
+  const err = new Error(`SMTP: nenhuma porta funcionou.\n${attempts.join('\n')}`)
+  err.status = 400
+  throw err
 }
 
 async function detectPorts(imapHosts, smtpHosts, user, pass) {

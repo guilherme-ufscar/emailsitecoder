@@ -4,10 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/ui/Spinner'
 import logo from '../assets/logo.svg'
 
+const DEFAULT_HOST = '86.48.20.18'
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [host, setHost] = useState('')
+  const [imapHost, setImapHost] = useState(DEFAULT_HOST)
+  const [smtpHost, setSmtpHost] = useState(DEFAULT_HOST)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { login } = useAuth()
@@ -18,10 +21,11 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password, host || undefined)
+      await login(email, password, imapHost || undefined, smtpHost || undefined)
       navigate('/inbox')
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao conectar. Verifique suas credenciais.')
+      const msg = err.response?.data?.error || err.message || 'Erro ao conectar.'
+      setError(msg)
     } finally { setLoading(false) }
   }
 
@@ -35,31 +39,41 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="voce@seudominio.com" required className="input-field" />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="voce@codermaster.com.br" required className="input-field" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="input-field" />
           </div>
           <details className="text-xs text-gray-400">
-            <summary className="cursor-pointer">Configuração avançada</summary>
-            <div className="mt-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Servidor IMAP/SMTP</label>
-              <input value={host} onChange={e => setHost(e.target.value)} placeholder="Detectado automaticamente" className="input-field" />
+            <summary className="cursor-pointer select-none text-sm text-gray-500">▶ Configuração do servidor</summary>
+            <div className="mt-3 flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Servidor IMAP</label>
+                <input value={imapHost} onChange={e => setImapHost(e.target.value)} placeholder={DEFAULT_HOST} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Servidor SMTP</label>
+                <input value={smtpHost} onChange={e => setSmtpHost(e.target.value)} placeholder={DEFAULT_HOST} className="input-field" />
+              </div>
             </div>
           </details>
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
+            </div>
+          )}
           <button type="submit" disabled={loading} className="btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2">
             {loading ? (
               <>
                 <Spinner size="sm" />
-                <span>Detectando servidor e conectando...</span>
+                <span>Conectando ao servidor...</span>
               </>
             ) : 'Entrar'}
           </button>
         </form>
         <p className="text-xs text-gray-400 text-center mt-6">
-          O servidor é detectado automaticamente via DNS (MX) e testado em tempo real.
+          Servidor padrão: {DEFAULT_HOST}
         </p>
       </div>
     </div>

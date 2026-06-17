@@ -16,8 +16,8 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  async function login(email, password, host) {
-    const r = await api.post('/auth/login', { email, password, host })
+  async function login(email, password, imapHost, smtpHost) {
+    const r = await api.post('/auth/login', { email, password, imapHost, smtpHost })
     localStorage.setItem('hf_token', r.data.token)
     sessionStorage.setItem('hf_pass', password)
     setUser(r.data.user)

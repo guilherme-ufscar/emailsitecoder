@@ -2,7 +2,7 @@ const express = require('express')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { getDb } = require('../config/db')
-const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/constants')
+const { JWT_SECRET, JWT_EXPIRES_IN, DEFAULT_MAIL_HOST } = require('../config/constants')
 const { detectPorts } = require('../services/portDetector')
 const { deriveHost } = require('../services/hostDetector')
 const authMiddleware = require('../middleware/auth')
@@ -11,14 +11,14 @@ const router = express.Router()
 
 router.post('/login', async (req, res, next) => {
   try {
-    const { email, password, host: providedHost } = req.body
+    const { email, password, host: providedHost, imapHost, smtpHost } = req.body
     if (!email || !password) {
       return res.status(400).json({ error: 'email and password are required' })
     }
 
-    const { imapHosts, smtpHosts } = providedHost
-      ? { imapHosts: [providedHost], smtpHosts: [providedHost] }
-      : await deriveHost(email)
+    const manualImap = imapHost || providedHost || DEFAULT_MAIL_HOST
+    const manualSmtp = smtpHost || providedHost || DEFAULT_MAIL_HOST
+    const { imapHosts, smtpHosts } = { imapHosts: [manualImap], smtpHosts: [manualSmtp] }
 
     const db = getDb()
     let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email)
