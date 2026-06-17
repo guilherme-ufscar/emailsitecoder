@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Pin, PinOff } from 'lucide-react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import api from '../lib/api'
@@ -80,7 +81,7 @@ export default function Notes() {
       <div className="flex-1 flex flex-col p-6 gap-3">
         <div className="flex gap-3 items-center">
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Título da nota" className="input-field flex-1 text-base font-medium" />
-          {selected && <button onClick={() => togglePin(selected)} className="text-lg">{selected.pinned ? '📌' : '📍'}</button>}
+          {selected && <button onClick={() => togglePin(selected)} className="text-gray-400 hover:text-brand-900 transition-colors">{selected.pinned ? <PinOff size={18} /> : <Pin size={18} />}</button>}
           {selected && <button onClick={() => remove(selected.id)} className="text-gray-400 hover:text-red-500 text-sm">Excluir</button>}
           <Button onClick={save}>Salvar</Button>
         </div>

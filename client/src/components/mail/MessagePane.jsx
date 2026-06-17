@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import DOMPurify from 'dompurify'
+import { Paperclip } from 'lucide-react'
 import { formatDateTime } from '../../lib/utils'
 import Spinner from '../ui/Spinner'
 import Button from '../ui/Button'
@@ -45,7 +46,7 @@ export default function MessagePane({ folder, uid, onClose }) {
               className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-700 transition-colors"
               download={att.filename}
             >
-              📎 {att.filename}
+              <Paperclip size={12} /> {att.filename}
             </a>
           ))}
         </div>

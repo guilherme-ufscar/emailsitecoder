@@ -1,3 +1,4 @@
+import { Paperclip } from 'lucide-react'
 import { formatDate, truncate } from '../../lib/utils'
 import Spinner from '../ui/Spinner'
 
@@ -22,7 +23,7 @@ export default function MessageList({ messages, loading, selectedUid, onSelect }
               <span className="text-xs text-gray-400 shrink-0">{formatDate(msg.date)}</span>
             </div>
             <p className={`text-sm truncate ${isRead ? 'text-gray-500' : 'font-medium text-gray-800'}`}>{msg.subject || '(sem assunto)'}</p>
-            {msg.hasAttachment && <span className="text-xs text-gray-400">📎</span>}
+            {msg.hasAttachment && <Paperclip size={12} className="mt-1 text-gray-400" />}
           </button>
         )
       })}

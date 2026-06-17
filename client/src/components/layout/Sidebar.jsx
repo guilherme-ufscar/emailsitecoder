@@ -1,15 +1,16 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import logo from '../../assets/logo.svg'
+import { Inbox, CheckSquare, Calendar, LayoutDashboard, StickyNote, Users, Settings, Folder, LogOut } from 'lucide-react'
 
 const navItems = [
-  { to: '/inbox', label: 'Inbox', icon: '✉' },
-  { to: '/todos', label: 'Tarefas', icon: '✓' },
-  { to: '/calendar', label: 'Agenda', icon: '📅' },
-  { to: '/kanban', label: 'Kanban', icon: '⬛' },
-  { to: '/notes', label: 'Notas', icon: '📝' },
-  { to: '/contacts', label: 'Contatos', icon: '👤' },
-  { to: '/settings', label: 'Config', icon: '⚙' },
+  { to: '/inbox',    label: 'Inbox',    Icon: Inbox },
+  { to: '/todos',    label: 'Tarefas',  Icon: CheckSquare },
+  { to: '/calendar', label: 'Agenda',   Icon: Calendar },
+  { to: '/kanban',   label: 'Kanban',   Icon: LayoutDashboard },
+  { to: '/notes',    label: 'Notas',    Icon: StickyNote },
+  { to: '/contacts', label: 'Contatos', Icon: Users },
+  { to: '/settings', label: 'Config',   Icon: Settings },
 ]
 
 export default function Sidebar({ folders = [], activeFolder, onFolderClick }) {
@@ -20,16 +21,16 @@ export default function Sidebar({ folders = [], activeFolder, onFolderClick }) {
         <img src={logo} alt="Logo" className="h-8 brightness-0 invert" />
       </div>
       <nav className="flex-1 overflow-y-auto py-2">
-        {navItems.map(item => (
+        {navItems.map(({ to, label, Icon }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={to}
+            to={to}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive ? 'bg-brand-800 text-white' : 'text-brand-100 hover:bg-brand-800 hover:text-white'}`
             }
           >
-            <span className="text-base">{item.icon}</span>
-            {item.label}
+            <Icon size={16} strokeWidth={1.75} />
+            {label}
           </NavLink>
         ))}
         {folders.length > 0 && (
@@ -41,6 +42,7 @@ export default function Sidebar({ folders = [], activeFolder, onFolderClick }) {
                 onClick={() => onFolderClick?.(f.path)}
                 className={`w-full text-left flex items-center gap-2 px-2 py-1.5 text-sm rounded transition-colors ${activeFolder === f.path ? 'bg-brand-800 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white'}`}
               >
+                <Folder size={14} strokeWidth={1.75} />
                 <span className="truncate">{f.name}</span>
               </button>
             ))}
@@ -49,7 +51,10 @@ export default function Sidebar({ folders = [], activeFolder, onFolderClick }) {
       </nav>
       <div className="px-4 py-3 border-t border-brand-800">
         <p className="text-xs text-brand-300 truncate mb-2">{user?.email}</p>
-        <button onClick={logout} className="text-xs text-brand-300 hover:text-white transition-colors">Sair</button>
+        <button onClick={logout} className="flex items-center gap-1.5 text-xs text-brand-300 hover:text-white transition-colors">
+          <LogOut size={13} strokeWidth={1.75} />
+          Sair
+        </button>
       </div>
     </aside>
   )
