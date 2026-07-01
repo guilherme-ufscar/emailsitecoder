@@ -1,5 +1,5 @@
 module.exports = {
-  DEFAULT_MAIL_HOST: process.env.DEFAULT_MAIL_HOST || '186.48.20.18',
+  DEFAULT_MAIL_HOST: process.env.DEFAULT_MAIL_HOST || '86.48.20.18',
   IMAP_CANDIDATES: [
     { port: 993, tls: true },
     { port: 143, tls: false, starttls: true },
