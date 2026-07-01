@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import Spinner from '../components/ui/Spinner'
 import logo from '../assets/logo.svg'
 
-const DEFAULT_HOST = '86.48.20.18'
+const DEFAULT_HOST = '186.48.20.18'
 
 export default function Login() {
   const [email, setEmail] = useState('')
